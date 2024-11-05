@@ -14,26 +14,31 @@ impl BufferMediator {
             offset_y: offset_y,
         }
     }
-    pub fn draw<T: Default + Sized + Copy, B: Buffer<T>>(
-        &mut self,
+    pub fn write<T: Default + Sized + Clone, B: Buffer<T>>(
+        &self,
         data: &[T],
         area: Rect,
         buffer: &mut B,
     ) {
-        let in_scope = self.get_inscope(&area);
-        let removed_x = (in_scope.x - area.x) as usize;
-        let removed_y = (in_scope.y - area.y) as usize;
-        for i in 0..in_scope.height as usize {
-            let starting_index = (i + removed_y) * (area.width as usize) + removed_x;
+        let visible = self.get_visible_region(&area);
+        if visible.width == 0 || visible.height == 0 {
+            return;
+        }
+        let removed_x = (visible.x - area.x) as usize;
+        let removed_y = (visible.y - area.y) as usize;
+
+        for i in 0..visible.height as usize {
+            let y_to_draw = i + removed_y;
+            let starting_index = y_to_draw * (area.width as usize) + removed_x;
             buffer.draw_line(
-                &data[starting_index..(starting_index + in_scope.width as usize)],
-                in_scope.x - self.offset_x,
-                in_scope.y - self.offset_y,
-                in_scope.width,
+                &data[starting_index..(starting_index + visible.width as usize)],
+                visible.x - self.offset_x + self.area.x,
+                visible.y - self.offset_y + self.area.x,
+                visible.width,
             );
         }
     }
-    pub fn get_inscope(&self, area: &Rect) -> Rect {
+    pub fn get_visible_region(&self, area: &Rect) -> Rect {
         let window = Rect::new(
             self.offset_x,
             self.offset_y,
@@ -44,7 +49,7 @@ impl BufferMediator {
     }
     pub fn generate_inner(&self, area: &Rect, offset_x: u16, offset_y: u16) -> Self {
         BufferMediator {
-            area: self.get_inscope(&area),
+            area: self.get_visible_region(&area),
             offset_x: self.offset_x + offset_x,
             offset_y: self.offset_x + offset_y,
         }
