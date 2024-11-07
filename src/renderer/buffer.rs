@@ -9,9 +9,11 @@ pub trait Buffer<T: Default + Sized + Clone>:
     fn draw_line(&mut self, data: &[T], x: u16, y: u16, lenght: u16);
     fn get_mediator(&self, region: Option<Rect>) -> BufferMediator;
     fn area(&self) -> Rect;
+    fn reset(&mut self);
+    fn resize(&mut self, width: u16, height: u16);
 }
 
-struct VecBuffer<T: Default + Sized + Clone> {
+pub struct VecBuffer<T: Default + Sized + Clone> {
     width: u16,
     height: u16,
     data: Vec<T>,
@@ -42,16 +44,26 @@ impl<T: Default + Sized + Clone> Buffer<T> for VecBuffer<T> {
     fn area(&self) -> Rect {
         Rect::new(0, 0, self.width, self.height)
     }
+
+    fn reset(&mut self) {
+        self.resize(self.width, self.height);
+    }
+
+    fn resize(&mut self, width: u16, height: u16) {
+        self.width = width;
+        self.height = height;
+        self.data = vec![T::default(); width as usize * height as usize]
+    }
 }
 impl<T: Default + Sized + Clone> Index<(u16, u16)> for VecBuffer<T> {
     fn index(&self, index: (u16, u16)) -> &Self::Output {
-        &self.data[index.1 as usize * self.width as usize + index.1 as usize]
+        &self.data[index.1 as usize * self.width as usize + index.0 as usize]
     }
 
     type Output = T;
 }
 impl<T: Default + Sized + Clone> IndexMut<(u16, u16)> for VecBuffer<T> {
     fn index_mut(&mut self, index: (u16, u16)) -> &mut Self::Output {
-        &mut self.data[index.1 as usize * self.width as usize + index.1 as usize]
+        &mut self.data[index.1 as usize * self.width as usize + index.0 as usize]
     }
 }

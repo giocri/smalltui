@@ -24,16 +24,16 @@ impl BufferMediator {
         if visible.width == 0 || visible.height == 0 {
             return;
         }
-        let removed_x = (visible.x - area.x) as usize;
-        let removed_y = (visible.y - area.y) as usize;
-
+        let first_x = (visible.x - area.x) as usize; //numbers of columns of the requested area that are hidden
+        let first_y = (visible.y - area.y) as usize; //numbers of rows of the requested area that are hidden
+        let screen_area = self.map_to_screen_space(&visible);
         for i in 0..visible.height as usize {
-            let y_to_draw = i + removed_y;
-            let starting_index = y_to_draw * (area.width as usize) + removed_x;
+            let y_to_draw = i + first_y; //current row of the request being writtent
+            let starting_index = y_to_draw * (area.width as usize) + first_x; //index of the first element of the row to write
             buffer.draw_line(
-                &data[starting_index..(starting_index + visible.width as usize)],
-                visible.x - self.offset_x + self.area.x,
-                visible.y - self.offset_y + self.area.x,
+                &data[starting_index..(starting_index + visible.width as usize)], //slice of data to draw
+                screen_area.x,
+                screen_area.y + (i as u16),
                 visible.width,
             );
         }
@@ -47,9 +47,17 @@ impl BufferMediator {
         );
         window.crop(area)
     }
+    fn map_to_screen_space(&self, area: &Rect) -> Rect {
+        Rect::new(
+            area.x - self.offset_x,
+            area.y - self.offset_y,
+            self.area.width,
+            self.area.height,
+        )
+    }
     pub fn generate_inner(&self, area: &Rect, offset_x: u16, offset_y: u16) -> Self {
         BufferMediator {
-            area: self.get_visible_region(&area),
+            area: self.map_to_screen_space(&self.get_visible_region(&area)),
             offset_x: self.offset_x + offset_x,
             offset_y: self.offset_x + offset_y,
         }

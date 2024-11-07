@@ -1,5 +1,5 @@
 use std::cmp;
-
+#[derive(Clone, Copy)]
 pub struct Rect {
     pub x: u16,
     pub y: u16,
@@ -27,10 +27,10 @@ impl Rect {
     pub fn crop(&self, other: &Rect) -> Rect {
         let (xmin, xmax) = (self.x, self.x + self.width);
         let (ymin, ymax) = (self.y, self.y + self.height);
-        let starting_x = cmp::min(cmp::max(xmin, other.x), xmax);
-        let starting_y = cmp::min(cmp::max(ymin, other.y), ymax);
-        let endpoint_x = cmp::max(cmp::min(xmax, other.x + other.width), xmin);
-        let endpoint_y = cmp::max(cmp::min(ymax, other.y + other.height), ymin);
+        let starting_x = other.x.max(xmin).min(xmax);
+        let starting_y = other.y.max(ymin).min(ymax);
+        let endpoint_x = (other.x + other.width).max(xmin).min(xmax);
+        let endpoint_y = (other.y + other.height).max(ymin).min(ymax);
         Rect {
             x: starting_x,
             y: starting_y,

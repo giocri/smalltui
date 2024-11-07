@@ -1,22 +1,23 @@
-use compact_str::{CompactString, ToCompactString};
+use compact_str::ToCompactString;
 
 //use super::buffer_mediator::BufferMediator;
 use super::{rect::Rect, BackgroundColor, ForegroundColor, Simble};
 pub mod simple_painter;
 
-pub trait Painter {
+pub trait Painter<'a> {
     fn background_fill(&mut self, color: BackgroundColor, area: Option<Rect>);
     fn foreground_fill(&mut self, color: ForegroundColor, area: Option<Rect>);
-    fn text_fill(&mut self, color: Simble, area: Option<Rect>);
+    fn simble_fill(&mut self, color: Simble, area: Option<Rect>);
     fn write_simbles(&mut self, text: &[Simble], area: Rect);
     fn write_background_color(&mut self, color: &[BackgroundColor], area: Rect);
     fn write_foreground_color(&mut self, color: &[ForegroundColor], area: Rect);
+    fn delegate_painter(&'a mut self, area: &Rect, offsetx: u16, offsety: u16) -> Self;
 }
-pub trait TextPainer {
+pub trait TextPainer<'a> {
     fn write_text_line(&mut self, text: &str, x: u16, y: u16);
     fn write_paragraph(&mut self, text: &str, x: u16, y: u16, line_break: Option<u16>);
 }
-impl<T: Painter> TextPainer for T {
+impl<'a, T: Painter<'a>> TextPainer<'a> for T {
     fn write_text_line(&mut self, text: &str, x: u16, y: u16) {
         let simblevector: Vec<Simble> = text
             .chars()
@@ -47,6 +48,12 @@ impl<T: Painter> TextPainer for T {
                         simbles.push(Simble(c.to_compact_string()));
                         line_lenght += 1;
                     }
+                }
+                if !simbles.is_empty() {
+                    self.write_simbles(
+                        simbles.as_slice(),
+                        Rect::new(x, curret_y, simbles.len() as u16, 1),
+                    );
                 }
             }
             None => {

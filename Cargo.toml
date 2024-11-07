@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 compact_str = "0.8.0"
+crossterm = "0.28.1"
