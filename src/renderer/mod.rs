@@ -1,8 +1,10 @@
 pub mod buffer;
 pub mod buffer_mediator;
+pub mod core_widgetes;
 pub mod painter;
 pub mod rect;
 pub mod terminal_writer;
+pub mod widget;
 use compact_str::CompactString;
 use crossterm::style::Color;
 #[derive(Clone, Copy)]

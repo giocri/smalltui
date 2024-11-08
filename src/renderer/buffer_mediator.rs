@@ -49,8 +49,8 @@ impl BufferMediator {
     }
     fn map_to_screen_space(&self, area: &Rect) -> Rect {
         Rect::new(
-            area.x - self.offset_x,
-            area.y - self.offset_y,
+            area.x - self.offset_x + self.area.x,
+            area.y - self.offset_y + self.area.y,
             self.area.width,
             self.area.height,
         )

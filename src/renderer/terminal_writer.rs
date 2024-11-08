@@ -1,7 +1,7 @@
 use super::{buffer::Buffer, BackgroundColor, ForegroundColor, Simble};
 use crossterm::{
     cursor,
-    style::{self, Colors, Print, SetColors},
+    style::{self, Colors, SetColors},
     terminal::{
         disable_raw_mode, enable_raw_mode, Clear, ClearType, EnterAlternateScreen,
         LeaveAlternateScreen,

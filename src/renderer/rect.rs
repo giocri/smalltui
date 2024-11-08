@@ -1,4 +1,3 @@
-use std::cmp;
 #[derive(Clone, Copy)]
 pub struct Rect {
     pub x: u16,

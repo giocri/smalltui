@@ -1,5 +1,3 @@
-use std::io::stdout;
-
 use compact_str::ToCompactString;
 use crossterm::{
     event::{self, Event, KeyCode, KeyEvent, KeyEventKind},
@@ -8,11 +6,13 @@ use crossterm::{
 };
 use smalltui::renderer::{
     buffer::{Buffer, VecBuffer},
-    buffer_mediator::BufferMediator,
+    core_widgetes::scrollbar::Scrollbar,
     painter::{simple_painter::SimplePainter, Painter, TextPainer},
     terminal_writer::TerminalWriter,
-    BackgroundColor, ForegroundColor, Simble,
+    widget::Widget,
+    BackgroundColor, Direction, ForegroundColor, Simble,
 };
+use std::io::stdout;
 
 fn main() {
     let stdout = stdout();
@@ -57,6 +57,23 @@ fn main() {
             18,
             Some(42),
         );
+        let s = Scrollbar::new(
+            24,
+            8,
+            5,
+            '-'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            '<'.to_compact_string().into(),
+            '>'.to_compact_string().into(),
+            Direction::Right,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        );
+        s.render_widget(&mut (p.delegate_painter(&area.offset(20, 25), 0, 0)));
         a.flush_frame().unwrap();
         match read_char().unwrap() {
             Some('q') => {
