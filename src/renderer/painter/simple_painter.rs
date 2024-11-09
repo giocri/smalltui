@@ -16,16 +16,16 @@ pub struct SimplePainter<
     text: &'a mut C,
     mediator: BufferMediator,
 }
-impl<'a, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>>
-    SimplePainter<'a, A, B, C>
+impl<'b, 'a: 'b, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>>
+    SimplePainter<'b, A, B, C>
 {
     pub fn new(
         background: &'a mut A,
         foreground: &'a mut B,
         text: &'a mut C,
         mediator: BufferMediator,
-    ) -> Self {
-        Self {
+    ) -> SimplePainter<'b, A, B, C> {
+        SimplePainter {
             background,
             foreground,
             text,
@@ -45,8 +45,8 @@ impl<'a, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simbl
         mediator.write(fill.as_slice(), area, buff);
     }
 }
-impl<'a, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>> Painter<'a>
-    for SimplePainter<'a, A, B, C>
+impl<'b, 'a: 'b, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>>
+    Painter<'b> for SimplePainter<'a, A, B, C>
 {
     fn background_fill(&mut self, color: BackgroundColor, area: Option<Rect>) {
         Self::fill::<BackgroundColor>(&self.mediator, color, area, self.background);
@@ -67,17 +67,20 @@ impl<'a, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simbl
         self.mediator.write(color, area, self.foreground);
     }
 
-    fn delegate_painter(
-        &'a mut self,
-        area: &Rect,
+    fn delegate_painter<'c: 'b>(
+        &'c mut self,
+        area: Rect,
         offset_x: u16,
         offset_y: u16,
-    ) -> SimplePainter<'a, A, B, C> {
+    ) -> impl Painter<'b> {
         SimplePainter::new(
-            self.background,
-            self.foreground,
-            self.text,
-            self.mediator.generate_inner(area, offset_x, offset_y),
+            &mut *self.background,
+            &mut *self.foreground,
+            &mut *self.text,
+            self.mediator.generate_inner(&area, offset_x, offset_y),
         )
+    }
+    fn area(&self) -> Rect {
+        return self.mediator.size();
     }
 }

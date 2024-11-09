@@ -62,7 +62,7 @@ impl Scrollbar {
     }
 }
 impl<'a, P: Painter<'a>> Widget<'a, P> for Scrollbar {
-    fn render_widget(&self, painter: &mut P) {
+    fn render_widget<'b>(&self, painter: &'b mut P) {
         let mut simbles = vec![self.bar_simble.clone(); self.lenght as usize];
         let grabbable = vec![self.grabbable_simble.clone(); self.grabbable_lenght as usize];
         let scrollbar_slice =

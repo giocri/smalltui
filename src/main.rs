@@ -6,15 +6,17 @@ use crossterm::{
 };
 use smalltui::renderer::{
     buffer::{Buffer, VecBuffer},
-    core_widgetes::scrollbar::Scrollbar,
+    core_widgetes::{border::Border, scrollbar::Scrollbar},
     painter::{simple_painter::SimplePainter, Painter, TextPainer},
+    rect::Rect,
     terminal_writer::TerminalWriter,
     widget::Widget,
     BackgroundColor, Direction, ForegroundColor, Simble,
 };
-use std::io::stdout;
+use std::{env, io::stdout};
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
     let stdout = stdout();
     let (mut width, mut height) = size().unwrap();
     let mut a: TerminalWriter<
@@ -34,6 +36,7 @@ fn main() {
         let buffs = a.buffers();
         let mediator = buffs.0.get_mediator(None);
         let area = buffs.0.area();
+        //eprintln!("buffer size:{:?}", area);
         let mut p = SimplePainter::new(buffs.0, buffs.1, buffs.2, mediator);
         p.background_fill(Color::DarkBlue.into(), None);
         p.foreground_fill(Color::Green.into(), None);
@@ -73,7 +76,25 @@ fn main() {
             None,
             None,
         );
-        s.render_widget(&mut (p.delegate_painter(&area.offset(20, 25), 0, 0)));
+        {
+            let painter = &mut p;
+            s.render_widget(&mut painter.delegate_painter(area.crop(&area.offset(20, 25)), 0, 0));
+        }
+        let b = Border::new(
+            '#'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            '|'.to_compact_string().into(),
+            '|'.to_compact_string().into(),
+            '-'.to_compact_string().into(),
+            '-'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            30,
+            12,
+        );
+        let mut delegate = p.delegate_painter(Rect::new(20, 26, 32, 32), 0, 0);
+        b.render_widget(&mut delegate);
+        drop(delegate);
         a.flush_frame().unwrap();
         match read_char().unwrap() {
             Some('q') => {

@@ -11,13 +11,19 @@ pub trait Painter<'a> {
     fn write_simbles(&mut self, text: &[Simble], area: Rect);
     fn write_background_color(&mut self, color: &[BackgroundColor], area: Rect);
     fn write_foreground_color(&mut self, color: &[ForegroundColor], area: Rect);
-    fn delegate_painter(&'a mut self, area: &Rect, offsetx: u16, offsety: u16) -> Self;
+    fn delegate_painter<'b: 'a>(
+        &'b mut self,
+        area: Rect,
+        offsetx: u16,
+        offsety: u16,
+    ) -> impl Painter<'a>;
+    fn area(&self) -> Rect;
 }
-pub trait TextPainer<'a> {
+pub trait TextPainer {
     fn write_text_line(&mut self, text: &str, x: u16, y: u16);
     fn write_paragraph(&mut self, text: &str, x: u16, y: u16, line_break: Option<u16>);
 }
-impl<'a, T: Painter<'a>> TextPainer<'a> for T {
+impl<'a, T: Painter<'a>> TextPainer for T {
     fn write_text_line(&mut self, text: &str, x: u16, y: u16) {
         let simblevector: Vec<Simble> = text
             .chars()

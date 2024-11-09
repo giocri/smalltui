@@ -1,4 +1,6 @@
-#[derive(Clone, Copy)]
+use std::cmp::{max, min};
+
+#[derive(Clone, Copy, Debug)]
 pub struct Rect {
     pub x: u16,
     pub y: u16,
@@ -24,17 +26,27 @@ impl Rect {
         Rect::new(self.x + x, self.y + y, self.width, self.height)
     }
     pub fn crop(&self, other: &Rect) -> Rect {
-        let (xmin, xmax) = (self.x, self.x + self.width);
-        let (ymin, ymax) = (self.y, self.y + self.height);
-        let starting_x = other.x.max(xmin).min(xmax);
-        let starting_y = other.y.max(ymin).min(ymax);
-        let endpoint_x = (other.x + other.width).max(xmin).min(xmax);
-        let endpoint_y = (other.y + other.height).max(ymin).min(ymax);
-        Rect {
-            x: starting_x,
-            y: starting_y,
-            width: endpoint_x - starting_x,
-            height: endpoint_y - starting_y,
+        let x1 = max(self.x, other.x);
+        let y1 = max(self.y, other.y);
+        let x2 = min(self.right(), other.right());
+        let y2 = min(self.bottom(), other.bottom());
+        Self {
+            x: x1,
+            y: y1,
+            width: x2.saturating_sub(x1),
+            height: y2.saturating_sub(y1),
         }
+    }
+    pub fn bottom(&self) -> u16 {
+        self.height + self.y
+    }
+    pub fn right(&self) -> u16 {
+        self.width + self.x
+    }
+    pub fn left(&self) -> u16 {
+        self.x
+    }
+    pub fn top(&self) -> u16 {
+        self.y
     }
 }

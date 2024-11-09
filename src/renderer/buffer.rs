@@ -27,7 +27,14 @@ impl<T: Default + Sized + Clone> Buffer<T> for VecBuffer<T> {
         }
     }
     fn draw_line(&mut self, data: &[T], x: u16, y: u16, lenght: u16) {
+        if lenght + x > self.width {
+            panic!("x overflow")
+        }
+        if y >= self.height {
+            panic!("y overflow")
+        }
         let start = (y * self.width + x) as usize;
+
         let buffer_section = &mut self.data[start..start + lenght as usize];
         buffer_section.clone_from_slice(&data[0..lenght as usize]);
     }

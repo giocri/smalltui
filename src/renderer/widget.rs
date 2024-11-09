@@ -1,5 +1,5 @@
 use super::painter::Painter;
 
-pub trait Widget<'a, P: Painter<'a>> {
-    fn render_widget(&self, painter: &mut P);
+pub trait Widget<'c, P: Painter<'c>> {
+    fn render_widget<'a>(&self, painter: &'a mut P);
 }
