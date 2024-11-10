@@ -68,13 +68,13 @@ fn main() {
             '#'.to_compact_string().into(),
             '<'.to_compact_string().into(),
             '>'.to_compact_string().into(),
-            Direction::Right,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
+            Direction::UP,
+            Some(Color::DarkGreen.into()),
+            Some(Color::White.into()),
+            Some(Color::White.into()),
+            Some(Color::Black.into()),
+            Some(Color::DarkRed.into()),
+            Some(Color::White.into()),
         );
         {
             let painter = &mut p;
