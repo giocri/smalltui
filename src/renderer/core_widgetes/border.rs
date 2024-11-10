@@ -40,7 +40,7 @@ impl Border {
         }
     }
 }
-impl<'a, P: Painter<'a>> Widget<'a, P> for Border {
+impl<P: Painter> Widget<P> for Border {
     fn render_widget<'b>(&self, painter: &'b mut P) {
         let mut line = vec![self.top_line.clone(); self.width as usize];
         line[0] = self.top_left.clone();

@@ -1,4 +1,7 @@
-use super::{buffer::Buffer, BackgroundColor, ForegroundColor, Simble};
+use super::{
+    buffer::Buffer, buffer_mediator::BufferMediator, painter::simple_painter::SimplePainter,
+    BackgroundColor, ForegroundColor, Simble,
+};
 use crossterm::{
     cursor,
     style::{self, Colors, SetColors},
@@ -83,6 +86,17 @@ impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>>
     }
     pub fn buffers(&mut self) -> (&mut A, &mut B, &mut C) {
         (&mut self.background, &mut self.foreground, &mut self.text)
+    }
+    pub fn get_painter<'b, 'c: 'b>(
+        &'c mut self,
+        mediator: BufferMediator,
+    ) -> SimplePainter<'b, A, B, C> {
+        SimplePainter::new(
+            &mut self.background,
+            &mut self.foreground,
+            &mut self.text,
+            mediator,
+        )
     }
 }
 impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>> Drop

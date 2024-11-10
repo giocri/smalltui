@@ -1,6 +1,7 @@
 use crate::renderer::buffer::Buffer;
 
 use super::rect::Rect;
+#[derive(Clone, Copy)]
 pub struct BufferMediator {
     area: Rect,
     offset_x: u16,

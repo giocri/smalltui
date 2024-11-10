@@ -36,8 +36,9 @@ fn main() {
         let buffs = a.buffers();
         let mediator = buffs.0.get_mediator(None);
         let area = buffs.0.area();
+        drop(buffs);
         //eprintln!("buffer size:{:?}", area);
-        let mut p = SimplePainter::new(buffs.0, buffs.1, buffs.2, mediator);
+        let mut p = a.get_painter(mediator);
         p.background_fill(Color::DarkBlue.into(), None);
         p.foreground_fill(Color::Green.into(), None);
         //p.simble_fill("A".to_compact_string().into(), None);
@@ -60,6 +61,7 @@ fn main() {
             18,
             Some(42),
         );
+        drop(p);
         let s = Scrollbar::new(
             24,
             8,
@@ -68,17 +70,20 @@ fn main() {
             '#'.to_compact_string().into(),
             '<'.to_compact_string().into(),
             '>'.to_compact_string().into(),
-            Direction::Right,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
+            Direction::UP,
+            Some(Color::DarkGreen.into()),
+            Some(Color::White.into()),
+            Some(Color::White.into()),
+            Some(Color::Black.into()),
+            Some(Color::DarkRed.into()),
+            Some(Color::White.into()),
         );
         {
-            let painter = &mut p;
-            s.render_widget(&mut painter.delegate_painter(area.crop(&area.offset(20, 25)), 0, 0));
+            s.render_widget(&mut a.get_painter(mediator.generate_inner(
+                &area.crop(&area.offset(20, 25)),
+                0,
+                0,
+            )));
         }
         let b = Border::new(
             '#'.to_compact_string().into(),
@@ -92,9 +97,10 @@ fn main() {
             30,
             12,
         );
-        let mut delegate = p.delegate_painter(Rect::new(20, 26, 32, 32), 0, 0);
+        let mut delegate = a.get_painter(mediator.generate_inner(&Rect::new(20, 26, 32, 32), 0, 0));
         b.render_widget(&mut delegate);
         drop(delegate);
+
         a.flush_frame().unwrap();
         match read_char().unwrap() {
             Some('q') => {

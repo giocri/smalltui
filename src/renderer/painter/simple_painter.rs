@@ -45,8 +45,8 @@ impl<'b, 'a: 'b, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buff
         mediator.write(fill.as_slice(), area, buff);
     }
 }
-impl<'b, 'a: 'b, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>>
-    Painter<'b> for SimplePainter<'a, A, B, C>
+impl<'a, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>> Painter
+    for SimplePainter<'a, A, B, C>
 {
     fn background_fill(&mut self, color: BackgroundColor, area: Option<Rect>) {
         Self::fill::<BackgroundColor>(&self.mediator, color, area, self.background);
@@ -66,18 +66,12 @@ impl<'b, 'a: 'b, A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buff
     fn write_foreground_color(&mut self, color: &[ForegroundColor], area: Rect) {
         self.mediator.write(color, area, self.foreground);
     }
-
-    fn delegate_painter<'c: 'b>(
-        &'c mut self,
-        area: Rect,
-        offset_x: u16,
-        offset_y: u16,
-    ) -> impl Painter<'b> {
+    fn get_painter(&mut self, mediator: BufferMediator) -> impl Painter {
         SimplePainter::new(
             &mut *self.background,
             &mut *self.foreground,
             &mut *self.text,
-            self.mediator.generate_inner(&area, offset_x, offset_y),
+            mediator,
         )
     }
     fn area(&self) -> Rect {
