@@ -1,10 +1,7 @@
 use compact_str::ToCompactString;
 
 //use super::buffer_mediator::BufferMediator;
-use super::{
-    buffer_mediator::BufferMediator, rect::Rect, widget::Widget, BackgroundColor, ForegroundColor,
-    Simble,
-};
+use super::{rect::Rect, widget::Widget, BackgroundColor, ForegroundColor, Simble};
 
 pub trait Painter: Sized {
     fn background_fill(&mut self, color: BackgroundColor, area: Option<Rect>);

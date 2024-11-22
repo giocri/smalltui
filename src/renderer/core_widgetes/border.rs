@@ -1,7 +1,4 @@
-use crate::renderer::{
-    buffer::VecBuffer, painter::Painter, rect::Rect, widget::Widget, BackgroundColor,
-    ForegroundColor, Simble,
-};
+use crate::renderer::{painter::Painter, rect::Rect, widget::Widget, Simble};
 
 pub struct Border {
     top_left: Simble,

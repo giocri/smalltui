@@ -1,6 +1,6 @@
 use crate::renderer::{
-    buffer::VecBuffer, painter::Painter, rect::Rect, widget::Widget, BackgroundColor, Direction,
-    ForegroundColor, Simble,
+    painter::Painter, rect::Rect, widget::Widget, BackgroundColor, Direction, ForegroundColor,
+    Simble,
 };
 
 pub struct Scrollbar {

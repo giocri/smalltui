@@ -5,12 +5,11 @@ use crossterm::{
     terminal::size,
 };
 use smalltui::renderer::{
-    buffer::{Buffer, VecBuffer},
+    buffer::VecBuffer,
     core_widgetes::{border::Border, scrollbar::Scrollbar},
     painter::{Painter, TextPainer},
     rect::Rect,
     terminal_writer::TerminalWriter,
-    widget::Widget,
     BackgroundColor, Direction, ForegroundColor, Simble,
 };
 use std::{env, io::stdout};
