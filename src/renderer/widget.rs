@@ -7,7 +7,7 @@ use super::{
 pub trait Widget<P: Painter> {
     fn render_widget<'a>(&self, painter: &'a mut P);
 }
-pub trait BasicWidget {
+pub trait BasicWidget: Sync {
     fn render_widget<'a>(
         &self,
         painter: &'a mut SimplePainter<
