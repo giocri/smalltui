@@ -3,7 +3,7 @@ use compact_str::ToCompactString;
 //use super::buffer_mediator::BufferMediator;
 use super::{rect::Rect, widget::Widget, BackgroundColor, ForegroundColor, Simble};
 
-pub trait Painter: Sized + Sync {
+pub trait Painter: Sized + Sync + Send {
     fn background_fill(&mut self, color: BackgroundColor, area: Option<Rect>);
     fn foreground_fill(&mut self, color: ForegroundColor, area: Option<Rect>);
     fn simble_fill(&mut self, color: Simble, area: Option<Rect>);
