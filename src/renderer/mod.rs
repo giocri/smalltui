@@ -5,7 +5,7 @@ pub mod painter;
 pub mod rect;
 pub mod terminal_writer;
 pub mod widget;
-use compact_str::CompactString;
+use compact_str::{CompactString, ToCompactString};
 use crossterm::style::Color;
 #[derive(Clone, Copy)]
 pub enum Direction {
@@ -57,5 +57,10 @@ impl Into<BackgroundColor> for Color {
 impl Into<Simble> for CompactString {
     fn into(self) -> Simble {
         Simble(self)
+    }
+}
+impl Into<Simble> for char {
+    fn into(self) -> Simble {
+        Simble(self.to_compact_string())
     }
 }
