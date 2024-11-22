@@ -170,7 +170,7 @@ impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>> 
 
     fn render_widget(
         &mut self,
-        widget: &impl super::widget::Widget<TerminalWriter<A, B, C>>,
+        widget: &dyn super::widget::Widget<TerminalWriter<A, B, C>>,
         area: super::rect::Rect,
         scroll_x: u16,
         scroll_y: u16,

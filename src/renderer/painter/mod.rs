@@ -13,7 +13,7 @@ pub trait Painter: Sized + Send + Sync {
     fn area(&self) -> Rect;
     fn render_widget(
         &mut self,
-        widget: &impl Widget<Self>,
+        widget: &dyn Widget<Self>,
         area: Rect,
         scroll_x: u16,
         scroll_y: u16,
