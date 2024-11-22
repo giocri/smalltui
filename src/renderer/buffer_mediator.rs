@@ -15,7 +15,7 @@ impl BufferMediator {
             offset_y: offset_y,
         }
     }
-    pub fn write<T: Default + Sized + Clone, B: Buffer<T>>(
+    pub fn write<T: Default + Sized + Clone + Send + Sync, B: Buffer<T>>(
         &self,
         data: &[T],
         area: Rect,

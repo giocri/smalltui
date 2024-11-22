@@ -2,8 +2,8 @@ use crate::renderer::buffer_mediator::BufferMediator;
 use crate::renderer::rect::Rect;
 //use crate::renderer::buffer_delegate::BufferMediator;
 use std::ops::{Index, IndexMut};
-pub trait Buffer<T: Default + Sized + Clone>:
-    Index<(u16, u16), Output = T> + IndexMut<(u16, u16), Output = T>
+pub trait Buffer<T: Default + Sized + Clone + Send + Sync>:
+    Index<(u16, u16), Output = T> + IndexMut<(u16, u16), Output = T> + Send + Sync
 {
     fn new(width: u16, height: u16) -> Self;
     fn draw_line(&mut self, data: &[T], x: u16, y: u16, lenght: u16);
@@ -18,7 +18,7 @@ pub struct VecBuffer<T: Default + Sized + Clone> {
     height: u16,
     data: Vec<T>,
 }
-impl<T: Default + Sized + Clone> Buffer<T> for VecBuffer<T> {
+impl<T: Default + Sized + Clone + Send + Sync> Buffer<T> for VecBuffer<T> {
     fn new(width: u16, height: u16) -> Self {
         VecBuffer::<T> {
             width: width,
