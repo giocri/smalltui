@@ -1,4 +1,10 @@
-use crate::renderer::{painter::Painter, rect::Rect, widget::Widget, Simble};
+use crate::renderer::{
+    buffer::VecBuffer,
+    painter::{simple_painter::SimplePainter, Painter},
+    rect::Rect,
+    widget::{BasicWidget, Widget},
+    BackgroundColor, ForegroundColor, Simble,
+};
 
 pub struct Border {
     top_left: Simble,
@@ -54,5 +60,18 @@ impl<P: Painter> Widget<P> for Border {
         painter.write_simbles(&line, Rect::new(0, 1, 1, self.height - 2));
         line = vec![self.vertical_right.clone(); self.height as usize - 2];
         painter.write_simbles(&line, Rect::new(self.width - 1, 1, 1, self.height - 2));
+    }
+}
+impl BasicWidget for Border {
+    fn render_widget<'a>(
+        &self,
+        painter: &'a mut SimplePainter<
+            '_,
+            VecBuffer<BackgroundColor>,
+            VecBuffer<ForegroundColor>,
+            VecBuffer<Simble>,
+        >,
+    ) {
+        Widget::render_widget(self, painter);
     }
 }

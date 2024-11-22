@@ -1,6 +1,9 @@
 use crate::renderer::{
-    painter::Painter, rect::Rect, widget::Widget, BackgroundColor, Direction, ForegroundColor,
-    Simble,
+    buffer::VecBuffer,
+    painter::{simple_painter::SimplePainter, Painter},
+    rect::Rect,
+    widget::{BasicWidget, Widget},
+    BackgroundColor, Direction, ForegroundColor, Simble,
 };
 
 pub struct Scrollbar {
@@ -132,5 +135,18 @@ impl<P: Painter> Widget<P> for Scrollbar {
             let fc = self.handle_direction(self.lenght - 1, 1);
             painter.write_foreground_color(&t, fc.0);
         }
+    }
+}
+impl BasicWidget for Scrollbar {
+    fn render_widget<'a>(
+        &self,
+        painter: &'a mut SimplePainter<
+            '_,
+            VecBuffer<BackgroundColor>,
+            VecBuffer<ForegroundColor>,
+            VecBuffer<Simble>,
+        >,
+    ) {
+        Widget::render_widget(self, painter);
     }
 }
