@@ -1,6 +1,6 @@
 use super::{
-    buffer::Buffer, buffer_mediator::BufferMediator, painter::simple_painter::SimplePainter,
-    BackgroundColor, ForegroundColor, Simble,
+    buffer::Buffer, buffer_mediator::BufferMediator, painter::Painter, rect::Rect, BackgroundColor,
+    ForegroundColor, Simble,
 };
 use crossterm::{
     cursor,
@@ -21,6 +21,7 @@ pub struct TerminalWriter<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>
     text: C,
     previous_text: C,
     stream: std::io::Stdout,
+    mediator_stack: Vec<BufferMediator>,
 }
 impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>>
     TerminalWriter<A, B, C>
@@ -34,6 +35,7 @@ impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>>
             text: C::new(width, height),
             previous_text: C::new(width, height),
             stream,
+            mediator_stack: Vec::new(),
         }
     }
     pub fn prepare_area(&mut self) {
@@ -84,19 +86,17 @@ impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>>
         self.text.resize(width, height);
         self.previous_text.resize(width, height);
     }
-    pub fn buffers(&mut self) -> (&mut A, &mut B, &mut C) {
-        (&mut self.background, &mut self.foreground, &mut self.text)
-    }
-    pub fn get_painter<'b, 'c: 'b>(
-        &'c mut self,
-        mediator: BufferMediator,
-    ) -> SimplePainter<'b, A, B, C> {
-        SimplePainter::new(
-            &mut self.background,
-            &mut self.foreground,
-            &mut self.text,
-            mediator,
-        )
+    fn fill<T: Default + Sized + Clone>(
+        mediator: &BufferMediator,
+        content: T,
+        area: Option<Rect>,
+        buff: &mut impl Buffer<T>,
+    ) {
+        let buffer_area = buff.area();
+        let area = area.unwrap_or(buffer_area);
+        let slice_size = area.height as usize * area.width as usize;
+        let fill = vec![content; slice_size];
+        mediator.write(fill.as_slice(), area, buff);
     }
 }
 impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>> Drop
@@ -107,5 +107,79 @@ impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>> 
         self.stream.queue(LeaveAlternateScreen).unwrap();
         disable_raw_mode().unwrap();
         self.stream.flush().unwrap();
+    }
+}
+impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>> Painter
+    for TerminalWriter<A, B, C>
+{
+    fn background_fill(&mut self, color: BackgroundColor, area: Option<super::rect::Rect>) {
+        let default_mediator = BufferMediator::new(self.background.area(), 0, 0);
+
+        Self::fill::<BackgroundColor>(
+            &self.mediator_stack.last().unwrap_or(&default_mediator),
+            color,
+            area,
+            &mut self.background,
+        );
+    }
+
+    fn foreground_fill(&mut self, color: ForegroundColor, area: Option<super::rect::Rect>) {
+        let default_mediator = BufferMediator::new(self.background.area(), 0, 0);
+
+        Self::fill::<ForegroundColor>(
+            &self.mediator_stack.last().unwrap_or(&default_mediator),
+            color,
+            area,
+            &mut self.foreground,
+        );
+    }
+
+    fn simble_fill(&mut self, color: Simble, area: Option<super::rect::Rect>) {
+        let default_mediator = BufferMediator::new(self.background.area(), 0, 0);
+        Self::fill::<Simble>(
+            &self.mediator_stack.last().unwrap_or(&default_mediator),
+            color,
+            area,
+            &mut self.text,
+        );
+    }
+
+    fn write_simbles(&mut self, text: &[Simble], area: super::rect::Rect) {
+        let default_mediator = BufferMediator::new(self.background.area(), 0, 0);
+        let mediator = &self.mediator_stack.last().unwrap_or(&default_mediator);
+        mediator.write(text, area, &mut self.text);
+    }
+
+    fn write_background_color(&mut self, color: &[BackgroundColor], area: super::rect::Rect) {
+        let default_mediator = BufferMediator::new(self.background.area(), 0, 0);
+        let mediator = &self.mediator_stack.last().unwrap_or(&default_mediator);
+        mediator.write(color, area, &mut self.background);
+    }
+
+    fn write_foreground_color(&mut self, color: &[ForegroundColor], area: super::rect::Rect) {
+        let default_mediator = BufferMediator::new(self.background.area(), 0, 0);
+        let mediator = &self.mediator_stack.last().unwrap_or(&default_mediator);
+        mediator.write(color, area, &mut self.foreground);
+    }
+
+    fn area(&self) -> super::rect::Rect {
+        let default_mediator = BufferMediator::new(self.background.area(), 0, 0);
+        let mediator = &self.mediator_stack.last().unwrap_or(&default_mediator);
+        mediator.size()
+    }
+
+    fn render_widget(
+        &mut self,
+        widget: &impl super::widget::Widget<TerminalWriter<A, B, C>>,
+        area: super::rect::Rect,
+        scroll_x: u16,
+        scroll_y: u16,
+    ) {
+        let default_mediator = BufferMediator::new(self.background.area(), 0, 0);
+        let mediator = &self.mediator_stack.last().unwrap_or(&default_mediator);
+        self.mediator_stack
+            .push(mediator.generate_inner(&area, scroll_x, scroll_y));
+        widget.render_widget(self);
+        self.mediator_stack.pop();
     }
 }

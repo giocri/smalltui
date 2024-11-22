@@ -7,7 +7,7 @@ use crossterm::{
 use smalltui::renderer::{
     buffer::{Buffer, VecBuffer},
     core_widgetes::{border::Border, scrollbar::Scrollbar},
-    painter::{simple_painter::SimplePainter, Painter, TextPainer},
+    painter::{Painter, TextPainer},
     rect::Rect,
     terminal_writer::TerminalWriter,
     widget::Widget,
@@ -33,23 +33,19 @@ fn main() {
             height = current_height;
             a.resize(width, height);
         }
-        let buffs = a.buffers();
-        let mediator = buffs.0.get_mediator(None);
-        let area = buffs.0.area();
-        drop(buffs);
+        let area = a.area();
         //eprintln!("buffer size:{:?}", area);
-        let mut p = a.get_painter(mediator);
-        p.background_fill(Color::DarkBlue.into(), None);
-        p.foreground_fill(Color::Green.into(), None);
+        a.background_fill(Color::DarkBlue.into(), None);
+        a.foreground_fill(Color::Green.into(), None);
         //p.simble_fill("A".to_compact_string().into(), None);
-        p.background_fill(Color::Red.into(), Some(area.crop(&area.offset(10, 10))));
-        p.foreground_fill(Color::Cyan.into(), Some(area.crop(&area.offset(20, 5))));
-        p.background_fill(Color::Black.into(), Some(area.crop(&area.offset(15, 15))));
+        a.background_fill(Color::Red.into(), Some(area.crop(&area.offset(10, 10))));
+        a.foreground_fill(Color::Cyan.into(), Some(area.crop(&area.offset(20, 5))));
+        a.background_fill(Color::Black.into(), Some(area.crop(&area.offset(15, 15))));
         /*p.simble_fill(
             "@".to_compact_string().into(),
             Some(area.crop(&area.offset(20, 5))),
         );*/
-        p.write_paragraph(
+        a.write_paragraph(
             "+----------+
 |          |
 |    MY    |
@@ -61,7 +57,6 @@ fn main() {
             18,
             Some(42),
         );
-        drop(p);
         let s = Scrollbar::new(
             24,
             8,
@@ -78,13 +73,7 @@ fn main() {
             Some(Color::DarkRed.into()),
             Some(Color::White.into()),
         );
-        {
-            s.render_widget(&mut a.get_painter(mediator.generate_inner(
-                &area.crop(&area.offset(20, 25)),
-                0,
-                0,
-            )));
-        }
+        a.render_widget(&s, area.offset(20, 25), 0, 0);
         let b = Border::new(
             '#'.to_compact_string().into(),
             '#'.to_compact_string().into(),
@@ -97,9 +86,7 @@ fn main() {
             30,
             12,
         );
-        let mut delegate = a.get_painter(mediator.generate_inner(&Rect::new(20, 26, 32, 32), 0, 0));
-        b.render_widget(&mut delegate);
-        drop(delegate);
+        a.render_widget(&b, Rect::new(20, 26, 32, 32), 0, 0);
 
         a.flush_frame().unwrap();
         match read_char().unwrap() {

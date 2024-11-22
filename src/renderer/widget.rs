@@ -1,20 +1,5 @@
-use super::{
-    buffer::VecBuffer,
-    painter::{simple_painter::SimplePainter, Painter},
-    BackgroundColor, ForegroundColor, Simble,
-};
+use super::{buffer::VecBuffer, painter::Painter, BackgroundColor, ForegroundColor, Simble};
 
 pub trait Widget<P: Painter> {
     fn render_widget<'a>(&self, painter: &'a mut P);
-}
-pub trait BasicWidget: Sync {
-    fn render_widget<'a>(
-        &self,
-        painter: &'a mut SimplePainter<
-            '_,
-            VecBuffer<BackgroundColor>,
-            VecBuffer<ForegroundColor>,
-            VecBuffer<Simble>,
-        >,
-    );
 }

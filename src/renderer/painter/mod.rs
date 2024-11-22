@@ -2,11 +2,11 @@ use compact_str::ToCompactString;
 
 //use super::buffer_mediator::BufferMediator;
 use super::{
-    buffer_mediator::BufferMediator, rect::Rect, BackgroundColor, ForegroundColor, Simble,
+    buffer_mediator::BufferMediator, rect::Rect, widget::Widget, BackgroundColor, ForegroundColor,
+    Simble,
 };
-pub mod simple_painter;
 
-pub trait Painter {
+pub trait Painter: Sized {
     fn background_fill(&mut self, color: BackgroundColor, area: Option<Rect>);
     fn foreground_fill(&mut self, color: ForegroundColor, area: Option<Rect>);
     fn simble_fill(&mut self, color: Simble, area: Option<Rect>);
@@ -14,7 +14,13 @@ pub trait Painter {
     fn write_background_color(&mut self, color: &[BackgroundColor], area: Rect);
     fn write_foreground_color(&mut self, color: &[ForegroundColor], area: Rect);
     fn area(&self) -> Rect;
-    fn get_painter(&mut self, mediator: BufferMediator) -> impl Painter;
+    fn render_widget(
+        &mut self,
+        widget: &impl Widget<Self>,
+        area: Rect,
+        scroll_x: u16,
+        scroll_y: u16,
+    );
 }
 pub trait TextPainer {
     fn write_text_line(&mut self, text: &str, x: u16, y: u16);
