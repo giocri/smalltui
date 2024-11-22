@@ -1,6 +1,5 @@
 use super::{
     buffer::VecBuffer,
-    buffer_mediator::BufferMediator,
     painter::{simple_painter::SimplePainter, Painter},
     BackgroundColor, ForegroundColor, Simble,
 };
