@@ -9,3 +9,8 @@ impl<P: Painter, T: Widget<P>> Widget<P> for Box<T> {
         self.as_ref().render_widget(painter);
     }
 }
+impl<P: Painter> Widget<P> for Box<dyn Widget<P>> {
+    fn render_widget(&self, painter: &mut P) {
+        self.as_ref().render_widget(painter);
+    }
+}
