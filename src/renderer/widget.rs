@@ -1,6 +1,6 @@
 use super::painter::Painter;
 
-pub trait Widget<P: Painter>: Sync + Send {
+pub trait Widget<P: Painter>: Sync {
     fn render_widget(&self, painter: &mut P);
 }
 
