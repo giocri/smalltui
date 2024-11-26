@@ -65,7 +65,7 @@ impl BufferMediator {
         BufferMediator {
             area: self.map_to_screen_space(&self.get_visible_region(&area)),
             offset_x: self.offset_x + offset_x,
-            offset_y: self.offset_x + offset_y,
+            offset_y: self.offset_y + offset_y,
         }
     }
     pub fn size(&self) -> Rect {

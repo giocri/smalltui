@@ -13,7 +13,8 @@ use smalltui::renderer::{
     BackgroundColor, Direction, ForegroundColor, Simble,
 };
 use std::{env, io::stdout};
-
+use wrapper::Wrappper;
+mod wrapper;
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
     let stdout = stdout();
@@ -82,10 +83,59 @@ fn main() {
             '-'.to_compact_string().into(),
             '#'.to_compact_string().into(),
             '#'.to_compact_string().into(),
-            30,
-            12,
+            8,
+            5,
         );
-        a.render_widget(&b, Rect::new(20, 26, 32, 32), 0, 0);
+        let control = Border::new(
+            '#'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            '|'.to_compact_string().into(),
+            '|'.to_compact_string().into(),
+            '-'.to_compact_string().into(),
+            '-'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            10,
+            7,
+        );
+        let wrapperd_b = Wrappper::new(Border::new(
+            '#'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            '|'.to_compact_string().into(),
+            '|'.to_compact_string().into(),
+            '-'.to_compact_string().into(),
+            '-'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            '#'.to_compact_string().into(),
+            8,
+            5,
+        ));
+        for i in 0..18 {
+            a.render_widget(
+                &b,
+                Rect::new(1 + 11 * (i % 6), 1 + 8 * (i / 6), 8, 5),
+                i % 6,
+                i / 6,
+            );
+            a.render_widget(
+                &wrapperd_b,
+                Rect::new(81 + 11 * (i % 6), 1 + 8 * (i / 6), 8, 5),
+                i % 6,
+                i / 6,
+            );
+            a.render_widget(
+                &control,
+                Rect::new(80 + 11 * (i % 6), 0 + 8 * (i / 6), 10, 7),
+                0,
+                0,
+            );
+            a.render_widget(
+                &control,
+                Rect::new(0 + 11 * (i % 6), 0 + 8 * (i / 6), 10, 7),
+                0,
+                0,
+            );
+        }
 
         a.flush_frame().unwrap();
         match read_char().unwrap() {
