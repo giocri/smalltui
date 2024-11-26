@@ -85,6 +85,7 @@ impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>>
         self.previous_foreground.resize(width, height);
         self.text.resize(width, height);
         self.previous_text.resize(width, height);
+        self.clear();
     }
     fn fill<T: Default + Sized + Clone + Send + Sync>(
         mediator: &BufferMediator,
