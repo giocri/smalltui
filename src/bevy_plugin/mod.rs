@@ -1,3 +1,5 @@
+use std::io::stdout;
+
 use crate::renderer::{
     buffer::VecBuffer,
     buffer_mediator::BufferMediator,
@@ -9,11 +11,35 @@ use crate::renderer::{
     BackgroundColor, ForegroundColor, Simble,
 };
 use bevy::{
-    prelude::{Component, Query, ResMut, Resource},
+    app::{App, Plugin, PostUpdate, PreUpdate, Startup},
+    prelude::{Component, IntoSystemConfigs, Query, ResMut, Resource, SystemSet},
     text::Text,
 };
 use compact_str::ToCompactString;
 use crossterm::terminal::size;
+pub struct SmallTuiPlugin;
+
+impl Plugin for SmallTuiPlugin {
+    fn build(&self, app: &mut App) {
+        app.insert_resource(SmalltuiTerminal(TerminalWriter::new(30, 30, stdout())))
+            .insert_resource(RenderQueue(Vec::new()))
+            .insert_resource(ScreenSize {
+                width: 5,
+                height: 5,
+            })
+            .add_systems(Startup, setup)
+            .add_systems(PreUpdate, resize_screen)
+            .add_systems(
+                PostUpdate,
+                render_all.in_set(TuiRenerStages::ExcecuteRenders),
+            );
+    }
+}
+#[derive(SystemSet, Hash, PartialEq, Eq, Debug, Clone, Copy)]
+pub enum TuiRenerStages {
+    QueueRenders,
+    ExcecuteRenders,
+}
 #[derive(Resource)]
 pub struct SmalltuiTerminal(
     pub TerminalWriter<VecBuffer<BackgroundColor>, VecBuffer<ForegroundColor>, VecBuffer<Simble>>,
