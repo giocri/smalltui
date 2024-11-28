@@ -58,8 +58,19 @@ impl BufferMediator {
         )
     }
     pub fn generate_inner(&self, area: &Rect, offset_x: u16, offset_y: u16) -> Self {
+        let client_area = self.map_to_screen_space(&self.get_visible_region(&area));
+        let offset_x = if client_area.x == self.area.x {
+            offset_x + area.width - client_area.width
+        } else {
+            offset_x
+        };
+        let offset_y = if client_area.y == self.area.y {
+            offset_y + area.height - client_area.height
+        } else {
+            offset_y
+        };
         BufferMediator {
-            area: self.map_to_screen_space(&self.get_visible_region(&area)),
+            area: client_area,
             offset_x: offset_x,
             offset_y: offset_y,
         }
