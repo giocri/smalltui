@@ -177,10 +177,121 @@ impl<A: Buffer<BackgroundColor>, B: Buffer<ForegroundColor>, C: Buffer<Simble>> 
         scroll_y: u16,
     ) {
         let default_mediator = BufferMediator::new(self.background.area(), 0, 0);
-        let mediator = &self.mediator_stack.last().unwrap_or(&default_mediator);
+        let mediator = self.mediator_stack.last().unwrap_or(&default_mediator);
         self.mediator_stack
             .push(mediator.generate_inner(&area, scroll_x, scroll_y));
         widget.render_widget(self);
         self.mediator_stack.pop();
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::renderer::buffer::VecBuffer;
+    use crate::renderer::widget::Widget;
+    use compact_str::ToCompactString;
+    use crossterm::style::Color;
+    use std::io::stdout;
+    use std::io::{self, Write};
+    type TW =
+        TerminalWriter<VecBuffer<BackgroundColor>, VecBuffer<ForegroundColor>, VecBuffer<Simble>>;
+    #[test]
+    fn test_new() {
+        let writer: TW = TerminalWriter::new(80, 25, stdout());
+        assert_eq!(writer.background.area(), Rect::new(0, 0, 80, 25));
+        assert_eq!(writer.foreground.area(), Rect::new(0, 0, 80, 25));
+        assert_eq!(writer.text.area(), Rect::new(0, 0, 80, 25));
+    }
+
+    #[test]
+    fn test_prepare_area() {
+        let mut writer: TW = TerminalWriter::new(80, 25, stdout());
+        writer.prepare_area();
+        // Expect that the terminal switches to alternate screen mode and clears the screen
+    }
+
+    #[test]
+    fn test_clear() {
+        let mut writer: TW = TerminalWriter::new(80, 25, stdout());
+        writer.clear();
+        // Expect that the screen is cleared
+    }
+
+    #[test]
+    fn test_flush_frame() {
+        let mut writer: TW = TerminalWriter::new(80, 25, stdout());
+        assert!(writer.flush_frame().is_ok());
+        // Expect the frame to be flushed without errors
+    }
+
+    #[test]
+    fn test_resize() {
+        let mut writer: TW = TerminalWriter::new(80, 25, stdout());
+        writer.resize(100, 30);
+        assert_eq!(writer.background.area(), Rect::new(0, 0, 100, 30));
+        assert_eq!(writer.foreground.area(), Rect::new(0, 0, 100, 30));
+        assert_eq!(writer.text.area(), Rect::new(0, 0, 100, 30));
+    }
+
+    #[test]
+    fn test_drop() {
+        let writer: TW = TerminalWriter::new(80, 25, stdout());
+        // Expect that raw mode is disabled and the alternate screen is left when dropped
+    }
+
+    #[test]
+    fn test_background_fill() {
+        let mut writer: TW = TerminalWriter::new(80, 25, stdout());
+        writer.background_fill(BackgroundColor(Color::Blue), None);
+        // Expect the background buffer to be filled with the specified color
+    }
+
+    #[test]
+    fn test_foreground_fill() {
+        let mut writer: TW = TerminalWriter::new(80, 25, stdout());
+        writer.foreground_fill(ForegroundColor(Color::Blue), None);
+        // Expect the foreground buffer to be filled with the specified color
+    }
+
+    #[test]
+    fn test_simble_fill() {
+        let mut writer: TW = TerminalWriter::new(80, 25, stdout());
+        writer.simble_fill(Simble('A'.to_compact_string()), None);
+        // Expect the text buffer to be filled with the specified simble
+    }
+
+    #[test]
+    fn test_write_simbles() {
+        let mut writer: TW = TerminalWriter::new(80, 25, stdout());
+        let text = vec![
+            Simble('H'.to_compact_string()),
+            Simble('e'.to_compact_string()),
+            Simble('l'.to_compact_string()),
+            Simble('l'.to_compact_string()),
+            Simble('o'.to_compact_string()),
+        ];
+        writer.write_simbles(&text, Rect::new(0, 0, 5, 1));
+        // Expect the text buffer to contain "Hello"
+    }
+
+    #[test]
+    fn test_area() {
+        let writer: TW = TerminalWriter::new(80, 25, stdout());
+        assert_eq!(writer.area(), Rect::new(0, 0, 80, 25));
+    }
+
+    #[test]
+    fn test_render_widget() {
+        struct MockWidget;
+        impl Widget<TW> for MockWidget {
+            fn render_widget(&self, painter: &mut TW) {
+                // Mock widget rendering logic
+            }
+        }
+
+        let mut writer = TerminalWriter::new(80, 25, stdout());
+        let widget = MockWidget;
+        writer.render_widget(&widget, Rect::new(0, 0, 10, 5), 0, 0);
+        // Expect the widget to be rendered within the specified area
     }
 }

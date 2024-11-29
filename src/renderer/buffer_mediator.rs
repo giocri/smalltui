@@ -1,7 +1,7 @@
 use crate::renderer::buffer::Buffer;
 
 use super::rect::Rect;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct BufferMediator {
     area: Rect,
     offset_x: u16,
@@ -77,5 +77,77 @@ impl BufferMediator {
     }
     pub fn size(&self) -> Rect {
         return Rect::new(0, 0, self.area.width, self.area.height);
+    }
+}
+#[cfg(test)]
+mod tests {
+
+    use crate::renderer::buffer::VecBuffer;
+
+    use super::*;
+    #[test]
+    fn test_new() {
+        let area = Rect::new(0, 0, 100, 100);
+        let mediator = BufferMediator::new(area, 10, 20);
+        assert_eq!(mediator.area, area);
+        assert_eq!(mediator.offset_x, 10);
+        assert_eq!(mediator.offset_y, 20);
+    }
+
+    #[test]
+    fn test_get_visible_region() {
+        let mediator = BufferMediator::new(Rect::new(0, 0, 100, 100), 10, 20);
+        let area = Rect::new(5, 15, 50, 50);
+        let visible_region = mediator.get_visible_region(&area);
+        assert_eq!(visible_region, Rect::new(10, 20, 45, 45));
+    }
+
+    #[test]
+    fn test_map_to_screen_space() {
+        let mediator = BufferMediator::new(Rect::new(0, 0, 100, 100), 10, 20);
+        let area = Rect::new(15, 25, 50, 50);
+        let screen_space = mediator.map_to_screen_space(&area);
+        assert_eq!(screen_space, Rect::new(5, 5, 50, 50));
+    }
+
+    #[test]
+    fn test_generate_inner() {
+        let mediator = BufferMediator::new(Rect::new(0, 0, 100, 100), 10, 20);
+        let area = Rect::new(5, 15, 50, 50);
+        let inner_mediator = mediator.generate_inner(&area, 5, 10);
+        assert_eq!(inner_mediator.area, Rect::new(0, 0, 45, 45));
+        assert_eq!(inner_mediator.offset_x, 10);
+        assert_eq!(inner_mediator.offset_y, 15);
+    }
+    #[test]
+    fn test_generate_inner_upper_boundary() {
+        let mediator = BufferMediator::new(Rect::new(0, 0, 100, 100), 10, 20);
+        let area = Rect::new(70, 80, 50, 50);
+        let inner_mediator = mediator.generate_inner(&area, 5, 10);
+        assert_eq!(inner_mediator.area, Rect::new(60, 60, 40, 40));
+        assert_eq!(inner_mediator.offset_x, 5);
+        assert_eq!(inner_mediator.offset_y, 10);
+    }
+    #[test]
+    fn test_size() {
+        let mediator = BufferMediator::new(Rect::new(0, 0, 100, 100), 10, 20);
+        assert_eq!(mediator.size(), Rect::new(0, 0, 100, 100));
+    }
+    #[test]
+    fn write() {
+        let area = Rect::new(10, 10, 60, 60);
+        let mediator = BufferMediator::new(area, 10, 20);
+        let mut buffer: VecBuffer<bool> = VecBuffer::new(100, 100);
+        let area = Rect::new(0, 0, 100, 200);
+        let data = vec![true; 20000];
+        mediator.write(data.as_slice(), area, &mut buffer);
+        for y in 0..100 {
+            for x in 0..100 {
+                assert_eq!(
+                    (buffer[(x, y)], x, y),
+                    ((x >= 10 && x < 70) && (y >= 10 && y < 70), x, y)
+                )
+            }
+        }
     }
 }

@@ -74,3 +74,81 @@ impl<T: Default + Sized + Clone> IndexMut<(u16, u16)> for VecBuffer<T> {
         &mut self.data[index.1 as usize * self.width as usize + index.0 as usize]
     }
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::panic;
+
+    #[test]
+    fn test_new() {
+        let buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        assert_eq!(buffer.width, 10);
+        assert_eq!(buffer.height, 20);
+        assert_eq!(buffer.data.len(), 200);
+    }
+
+    #[test]
+    fn test_draw_line() {
+        let mut buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        let data = vec![1, 2, 3, 4, 5];
+        buffer.draw_line(&data, 2, 5, 5);
+        assert_eq!(&buffer.data[52..57], &[1, 2, 3, 4, 5]);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_draw_line_x_overflow() {
+        let mut buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        buffer.draw_line(&vec![1, 2, 3, 4, 5], 8, 5, 5);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_draw_line_y_overflow() {
+        let mut buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        buffer.draw_line(&vec![1, 2, 3, 4, 5], 2, 21, 5);
+    }
+
+    #[test]
+    fn test_get_mediator() {
+        let buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        let mediator = buffer.get_mediator(Some(Rect::new(1, 1, 5, 5)));
+        assert_eq!(BufferMediator::new(Rect::new(1, 1, 5, 5), 0, 0), mediator);
+    }
+
+    #[test]
+    fn test_area() {
+        let buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        assert_eq!(buffer.area(), Rect::new(0, 0, 10, 20));
+    }
+
+    #[test]
+    fn test_reset() {
+        let mut buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        buffer.draw_line(&vec![1, 2, 3, 4, 5], 2, 5, 5);
+        buffer.reset();
+        assert_eq!(buffer.data, vec![0; 200]);
+    }
+
+    #[test]
+    fn test_resize() {
+        let mut buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        buffer.resize(20, 30);
+        assert_eq!(buffer.width, 20);
+        assert_eq!(buffer.height, 30);
+        assert_eq!(buffer.data.len(), 600);
+    }
+
+    #[test]
+    fn test_index() {
+        let buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        assert_eq!(buffer[(2, 3)], 0);
+    }
+
+    #[test]
+    fn test_index_mut() {
+        let mut buffer: VecBuffer<u8> = VecBuffer::new(10, 20);
+        buffer[(2, 3)] = 5;
+        assert_eq!(buffer[(2, 3)], 5);
+    }
+}
